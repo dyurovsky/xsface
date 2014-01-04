@@ -44,12 +44,12 @@ for a = 1:length(ages)
                
         % now output
         for d = 1:length(preds{a}{c})
-          fprintf(fid,'%s,%d,%s,%d\n',....
-            subids{a}{c},a,num2str(d),preds{a}{c}(d));
+          fprintf(fid,'%s,%s,%d\n',....
+            subids{a}{c},num2str(d),preds{a}{c}(d));
         end    
     end
 end
 
 fclose(fid);
 
-save(['mats/LDT_dets_' datestr(now,1) '.mat'],'all_dets','files');
+save(['mats/detectors_' datestr(now,1) '.mat'],'all_dets','files');

@@ -1,17 +1,23 @@
 #!/usr/bin/env python
 
+# run this locally to take FFMPEG packet files and get the actual timestamps for frames
+
 import os, sys, re
 from PyRTF import *
 
 target = sys.argv[1]
-targetfiles = os.listdir(target)
+targetfiles = os.listdir(target + "/raw")
 #print target
 #print targetfiles
 
+checkfile = open("../data/movie_lengths.csv","w")
+checkfile.write("subid,last.frame,length\n")
+
 for f in filter (lambda a: a.find(".txt") != -1, targetfiles):
     # print f
-    fin = open(target + "/" + f,"r")
-    fout = open(target + "/parsed/" + f + ".parsed.csv","w")
+    fin = open(target + "/raw/" + f,"r")
+    short_f = f[3:7] + ".csv"
+    fout = open(target + "/" + short_f,"w")
     fout.write("frame,time\n")
     
     contents = fin.read().split("[PACKET]")
@@ -24,7 +30,7 @@ for f in filter (lambda a: a.find(".txt") != -1, targetfiles):
                 fout.write(str(i) + "," + m.group(0).replace("pts_time=","") + "\n")
                 i = i + 1
 
-    print f + "," + str(i-1) + "," + m.group(0).replace("pts_time=","") 
+    checkfile.write("XS-" + short_f + "," + str(i-1) + "," + m.group(0).replace("pts_time=","") + "\n")
         
     
     

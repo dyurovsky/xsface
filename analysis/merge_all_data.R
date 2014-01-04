@@ -4,7 +4,7 @@ source("~/Projects/R/Ranalysis/useful.R")
 source("analysis/helper.R")
 
 ## load detectors
-dets <- read.csv("~/Projects/xsface/data/face_presence_LDT.csv")
+dets <- read.csv("data/all_detectors.csv")
 
 ## load demographic data and merge
 demo.data <- read.csv("~/Projects/xsface/data/demographics/demographics.csv")
