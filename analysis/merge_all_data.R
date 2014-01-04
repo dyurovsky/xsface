@@ -1,7 +1,7 @@
 rm(list=ls())
 
-source("~/Projects/R/mcf.useful.R")
-source("R_analyses/helper.R")
+source("~/Projects/R/Ranalysis/useful.R")
+source("analysis/helper.R")
 
 ## load detectors
 dets <- read.csv("~/Projects/xsface/data/face_presence_LDT.csv")
