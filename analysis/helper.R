@@ -1,33 +1,47 @@
 ######## MERGE IN EXACT TIMES FOR FRAMES #########
 add.times <- function(x) {
-  times <- read.csv(paste("data/frame_counts/parsed/",
-                          x$subid[1],
-                          "_objs.mov.frames.txt.parsed.csv",
-                          sep=""))
-  x <- merge(x,times, by.x = "frame", by.y = "frame", all.x = TRUE, all.y = FALSE)
+  fname <- paste("data/frame_times/",
+                 str_sub(as.character(x$subid[1]),start=4,end=8),
+                 ".csv",
+                 sep="")
+  if (file.exists(fname)) {
+    times <- read.csv(fname)
+    x <- merge(x,times, by.x = "frame", by.y = "frame", all.x = TRUE, all.y = FALSE)
   
-  x$dt <- c(diff(x$t),.032)
+    x$dt <- c(diff(x$time),.032)
+  } else {
+    x$time <- NA
+    x$dt <- NA
+  }
+  
   return(x)
 }
 
 ######## ADD POSTURE CODING #########
 add.posture <- function(x) {
-  postures <- read.csv(paste("data/posture/cleaned/",
-                             x$subid[1],
-                             ".csv",
-                             sep=""),
-                       stringsAsFactors=FALSE)
+  fname <- paste("data/posture/",
+                 x$subid[1],
+                 ".csv",
+                 sep="")
   
-  postures <- regularize.postures(postures)
-  
-  x$posture <- factor(NA,levels=levels(postures$posture))
-  x$orientation <- factor(NA,levels=levels(postures$orientation))
-  
-  # for each row of p, populate posture and orientation to x
-  for (i in 1:nrow(postures)) {
-    range <- x$time > postures$start[i] & x$time <= postures$end[i]
-    x$posture[range] <- postures$posture[i]
-    x$orientation[range] <- postures$orientation[i]
+  if (file.exists(fname)) {
+    print(fname)
+    postures <- read.csv(fname,stringsAsFactors=FALSE)
+    
+    postures <- regularize.postures(subset(postures,code=="posture"))
+    
+    x$posture <- factor(NA,levels=levels(postures$posture))
+    x$orientation <- factor(NA,levels=levels(postures$orientation))
+    
+    # for each row of p, populate posture and orientation to x
+    for (i in 1:nrow(postures)) {
+      range <- x$time > postures$start[i] & x$time <= postures$end[i]
+      x$posture[range] <- postures$posture[i]
+      x$orientation[range] <- postures$orientation[i]
+    }
+  } else {
+    x$posture <- NA
+    x$orientation <- NA
   }
   
   return(x)
@@ -35,34 +49,38 @@ add.posture <- function(x) {
 
 ######## GET POSTURE CODING SORTED OUT #########
 regularize.postures <- function (p) {
-  postures <- c("lie","carry","prone","sit","stand","other")
-  orientations <- c("far","close","behind","other")
+  original.postures <- c("p","si","st","l","c","w","NIF")
   
-  # replace postures with the ones we want
-  p$posture[p$posture=="l"] <- "lie"  
-  p$posture[p$posture=="c"] <- "prone"  
-  p$posture[p$posture=="si"] <- "sit"
-  p$posture[p$posture=="st"] <- "stand"
-  p$posture[p$posture=="w"] <- "stand"  # walking is standing  
-  p$posture <- factor(p$posture, levels = postures)
+  # clean up postures
+  p$type <- factor(p$type,levels=original.postures)
+  p$type <- revalue(p$type,c("p"="prone",
+                   "si"="sit",
+                   "st"="stand",
+                   "l"="lie",
+                   "c"="carry",
+                   "w"="stand",
+                   "NIF"="NIF"))
+  p$type[p$type=="NIF"] <- NA
+  p$posture <- p$type
   
-  # replace orientations with the ones we want
-  p$orientation[p$orientation==0] <- "far"
-  p$orientation[p$orientation==1] <- "close"
-  p$orientation[p$orientation==2] <- "close"
-  p$orientation[p$orientation==3] <- "behind"
-  p$orientation[p$orientation==5] <- "other"
-  p$orientation <- factor(p$orientation, levels = orientations)
+  # clean up orientations
+  p$orientation <- as.numeric(p$orient)
+  p$orientation[is.nan(p$orientation)] <- NA
   
-  # convert times to readable time format
-  p$start <- strptime(p$start,"%M:%OS")
-  p$end <- strptime(p$end,"%M:%OS")
+  p$orientation <- factor(p$orientation,levels=c(0,1,2,3,5))
+  p$orientation <- revalue(p$orientation,
+                      c("0"="far",
+                        "1"="close",
+                        "2"="close",
+                        "3"="behind",
+                        "5"="other"))
   
   # re-zero the times
   begin <- p$start[1]
-  p$start <- as.numeric(difftime(p$start,begin,units="secs"))
-  p$end <- as.numeric(difftime(p$end,begin,units="secs"))
+  p$start <- (p$start - begin)/1000
+  p$end <- (p$stop - begin)/1000
   
+  p <- p[,c("start","end","posture","orientation")]
   return(p)
 }
 

@@ -45,7 +45,7 @@ for a = 1:length(ages)
         % now output
         for d = 1:length(preds{a}{c})
           fprintf(fid,'%s,%s,%d\n',....
-            subids{a}{c},num2str(d),preds{a}{c}(d));
+            ['XS_' subids{a}{c}],num2str(d),preds{a}{c}(d));
         end    
     end
 end
