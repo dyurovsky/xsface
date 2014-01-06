@@ -20,4 +20,4 @@ d <- ddply(d, ~subid, add.times)
 ## now add posture and orientation to these
 d <- ddply(d, ~subid, add.posture)
 
-write.csv(d,"~/Projects/xsface/data/dets_with_posture_and_demographics.csv")
+write.csv(d,"data/consolidated_data.csv")

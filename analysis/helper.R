@@ -56,7 +56,7 @@ regularize.postures <- function (p) {
   p$type <- revalue(p$type,c("p"="prone",
                    "si"="sit",
                    "st"="stand",
-                   "l"="lie",
+                   "l"="prone",
                    "c"="carry",
                    "w"="stand",
                    "NIF"="NIF"))
@@ -104,7 +104,7 @@ regularize.naming <- function (n) {
   n$familiarity <- factor(n$familiarity)
   
   # make the times seconds since onset
-  n$time <- as.numeric(difftime(strptime(n$time,"%H:%M:%OS"),
+  n$time <- as.numeric(difftime(strptime(n$time,"%M:%OS"),
                                 strptime("00:00:00.0","%H:%M:%OS"),units="secs"))
   
   n <- subset(n,!is.na(name))
@@ -130,11 +130,13 @@ summarize.naming <- function (x, window = c(-2,2)) {
   words <- c("ball","zem","car","manu","brush","gimo","tima","kittycat","bobcat","cat","gasser","puppy")
 
   # read in naming times
-  namings <- read.csv(paste("data/naming/cleaned/",
+  namings <- read.csv(paste("data/naming/",
                       x$subid[1],
-                      "_objs_annotation.csv",
+                      ".csv",
                       sep=""),
                 stringsAsFactors=FALSE)
+  
+#   print(x$subid[1])
   
   # rectify the coding
   namings <- regularize.naming(namings)
@@ -150,9 +152,7 @@ summarize.naming <- function (x, window = c(-2,2)) {
     
     namings$face[i] <- na.mean(x$face[x$time > range[1] & x$time < range[2]])
     namings$posture[i] <- x$posture[(x$time > namings$time[i])][1]
-    namings$orientation[i] <- x$orientation[(x$time > namings$time[i])][1]
-    namings$angle[i] <- na.mean(x$angle[x$face[x$time > range[1] & x$time < range[2]]])
-  
+    namings$orientation[i] <- x$orientation[(x$time > namings$time[i])][1]  
   }
   
   namings$age.grp <- x$age.grp[1]
